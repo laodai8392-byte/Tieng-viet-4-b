@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Violympic Tiếng Việt Lớp 4</title>
+
+<style>
+body{
+    font-family: Arial, sans-serif;
+    background:#f0f9ff;
+    padding:20px;
+}
+.container{
+    max-width:750px;
+    margin:auto;
+    background:white;
+    padding:20px;
+    border-radius:10px;
+}
+h1{text-align:center;}
+.timer{
+    text-align:center;
+    color:red;
+    font-size:18px;
+}
+.progress{
+    text-align:center;
+    margin:10px 0;
+}
+.answers label{
+    display:block;
+    font-size:18px;
+    margin:8px 0;
+}
+button{
+    padding:10px 24px;
+    font-size:16px;
+    background:#0d6efd;
+    color:white;
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
+}
+button:disabled{background:gray;}
+.hidden{display:none;}
+input{
+    padding:8px;
+    font-size:16px;
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<!-- LOGIN -->
+<div id="login">
+    <h1>🔐 NHẬP MÃ VÀO THI</h1>
+    <input id="accessCode" placeholder="Nhập mã vào thi">
+    <br><br>
+    <button onclick="checkCode()">Bắt đầu</button>
+    <p id="error" style="color:red;"></p>
+</div>
+
+<!-- QUIZ -->
+<div id="quizBox" class="hidden">
+    <h1>VÒNG THI TIẾNG VIỆT LỚP 4</h1>
+
+    <div class="timer">
+        ⏱️ Thời gian còn lại: <span id="time">1800</span> giây
+    </div>
+
+    <div class="progress">
+        Câu <span id="current">1</span> / 30
+    </div>
+
+    <div id="question" style="font-size:20px;margin:15px 0;"></div>
+    <div class="answers" id="answers"></div>
+
+    <div style="text-align:center;margin-top:15px">
+        <button id="nextBtn" onclick="nextQuestion()" disabled>Tiếp theo</button>
+    </div>
+</div>
+
+</div>
+
+<script>
+const CODE = "MTV-K4MWBK";
+const POINT = 10;
+
+let questions = [
+{q:"Từ nào là danh từ?",a:["chạy","cái bàn","xanh"],c:1},
+{q:"Từ nào là động từ?",a:["học tập","quyển sách","chăm chỉ"],c:0},
+{q:"Từ nào là tính từ?",a:["cao","ăn","bút"],c:0},
+{q:"Từ trái nghĩa với 'chăm chỉ' là?",a:["siêng năng","lười biếng","cần cù"],c:1},
+{q:"Từ đồng nghĩa với 'dũng cảm' là?",a:["nhút nhát","gan dạ","sợ hãi"],c:1},
+{q:"Câu nào là câu kể?",a:["Bạn đi đâu?","Ôi đẹp quá!","Em đang học bài."],c:2},
+{q:"Câu nào là câu hỏi?",a:["Hôm nay trời mưa.","Bạn tên là gì?","Em rất vui."],c:1},
+{q:"Dấu câu nào dùng để kết thúc câu kể?",a:["?","!","."],c:2},
+{q:"Từ nào viết đúng chính tả?",a:["xung sướng","sung sướng","sung xướng"],c:1},
+{q:"Từ nào viết đúng?",a:["chải chuốt","trải chuốt","chải chuốc"],c:0},
+{q:"Bộ phận nào trả lời câu hỏi 'Ai?' trong câu?",a:["Vị ngữ","Chủ ngữ","Trạng ngữ"],c:1},
+{q:"Bộ phận nào nói lên hoạt động?",a:["Chủ ngữ","Vị ngữ","Trạng ngữ"],c:1},
+{q:"Từ nào chỉ đặc điểm?",a:["cao","đọc","bàn"],c:0},
+{q:"Từ nào chỉ hoạt động?",a:["chạy","đẹp","xanh"],c:0},
+{q:"Từ nào chỉ sự vật?",a:["cái ghế","ngủ","nhanh"],c:0},
+{q:"Câu 'Em yêu trường em' là kiểu câu gì?",a:["Câu hỏi","Câu kể","Câu cảm"],c:1},
+{q:"Dấu '!' dùng khi nào?",a:["Kết thúc câu hỏi","Bày tỏ cảm xúc","Kết thúc câu kể"],c:1},
+{q:"Từ trái nghĩa với 'to lớn' là?",a:["nhỏ bé","cao","rộng"],c:0},
+{q:"Từ đồng nghĩa với 'thông minh' là?",a:["ngu ngốc","lanh lợi","chậm chạp"],c:1},
+{q:"Từ nào KHÔNG phải danh từ?",a:["học sinh","giáo viên","học tập"],c:2},
+{q:"Câu nào có đủ chủ ngữ và vị ngữ?",a:["Ngoài sân.","Mẹ đang nấu cơm.","Khi trời mưa."],c:1},
+{q:"Từ nào viết sai?",a:["xinh xắn","sạch sẽ","xạch xẽ"],c:2},
+{q:"Từ nào chỉ cảm xúc?",a:["vui mừng","chạy","bàn"],c:0},
+{q:"Câu cảm dùng để làm gì?",a:["Hỏi","Kể","Bộc lộ cảm xúc"],c:2},
+{q:"Từ 'hiền lành' là?",a:["Danh từ","Động từ","Tính từ"],c:2},
+{q:"Từ 'học sinh' là?",a:["Danh từ","Động từ","Tính từ"],c:0},
+{q:"Câu 'Bạn có khỏe không?' là?",a:["Câu kể","Câu hỏi","Câu cảm"],c:1},
+{q:"Từ nào đúng chính tả?",a:["chung thủy","trung thủy","chung thủi"],c:1},
+{q:"Từ trái nghĩa với 'vui vẻ' là?",a:["buồn bã","hạnh phúc","mừng rỡ"],c:0},
+{q:"Câu nào là câu cảm?",a:["Ôi, cảnh đẹp quá!","Em đi học.","Bạn ăn cơm chưa?"],c:0}
+];
+
+let index=0, correct=0, wrong=0;
+let timeLeft=1800, timer=null;
+
+// CHECK CODE
+function checkCode(){
+    let val=document.getElementById("accessCode").value.trim();
+    if(val===CODE){
+        document.getElementById("login").classList.add("hidden");
+        document.getElementById("quizBox").classList.remove("hidden");
+        startTimer();
+        showQuestion();
+    }else{
+        document.getElementById("error").innerText="❌ Mã không đúng!";
+    }
+}
+
+// SHOW QUESTION
+function showQuestion(){
+    document.getElementById("current").innerText=index+1;
+    document.getElementById("question").innerText=questions[index].q;
+    let html="";
+    for(let i=0;i<questions[index].a.length;i++){
+        html+='<label><input type="radio" name="ans_'+index+'" value="'+i+'" onchange="enableNext()"> '+questions[index].a[i]+'</label>';
+    }
+    document.getElementById("answers").innerHTML=html;
+    document.getElementById("nextBtn").disabled=true;
+}
+
+function enableNext(){
+    document.getElementById("nextBtn").disabled=false;
+}
+
+// NEXT
+function nextQuestion(){
+    let sel=document.querySelector('input[name="ans_'+index+'"]:checked');
+    if(sel && parseInt(sel.value)===questions[index].c) correct++;
+    else wrong++;
+    index++;
+    if(index<30) showQuestion();
+    else finish();
+}
+
+// TIMER
+function startTimer(){
+    timer=setInterval(function(){
+        timeLeft--;
+        document.getElementById("time").innerText=timeLeft;
+        if(timeLeft<=0) finish();
+    },1000);
+}
+
+// FINISH
+function finish(){
+    clearInterval(timer);
+    let score=correct*POINT;
+    alert(
+        "🎉 KẾT QUẢ VÒNG THI\n\n"+
+        "✔️ Đúng: "+correct+"\n"+
+        "❌ Sai: "+wrong+"\n\n"+
+        "🏆 Điểm: "+score+" / 300"
+    );
+    location.reload();
+}
+</script>
+
+</body>
+</html>
